@@ -56,6 +56,8 @@ param cosmosDbContainerName string = 'Prompts'
 param principalId string = ''
 
 var abbrs = loadJsonContent('abbreviations.json')
+
+// 最後の引数に適当な文字列を入れることで時間短縮可能
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
 
@@ -81,6 +83,55 @@ resource searchServiceResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-
 resource storageResourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' existing = if (!empty(storageResourceGroupName)) {
   name: !empty(storageResourceGroupName) ? storageResourceGroupName : resourceGroup.name
 }
+
+module vnet 'core/network/vnet.bicep' = {
+  name: 'test-vnet'
+  scope: resourceGroup
+  params: {
+    name: 'test-vnet'
+    location: location
+    addressPrefixes: ['10.0.0.0/16']
+  }
+}
+
+module vmSubnet 'core/network/subnet.bicep' = {
+  name: 'vm-subnet'
+  scope: resourceGroup
+  params: {
+    existVnetName: vnet.outputs.name
+    name: 'vm-subnet'
+    addressPrefix: '10.0.0.0/24'
+  }
+}
+
+module appServiceSubnet 'core/network/subnet.bicep' = {
+  name: 'app-service-subnet'
+  scope: resourceGroup
+  params: {
+    existVnetName: vnet.outputs.name
+    name: 'app-service-subnet'
+    addressPrefix: '10.0.1.0/24'
+    delegations: [
+    {
+    name: 'webapp'
+      properties: {
+        serviceName: 'Microsoft.Web/hostingEnvironments'
+        }
+      }
+    ]
+  }
+}
+
+module privateEndpointSubnet 'core/network/subnet.bicep' = {
+  name: 'private-endpoint-subnet'
+  scope: resourceGroup
+  params: {
+    existVnetName: vnet.outputs.name
+    name: 'private-endpoint-subnet'
+    addressPrefix: '10.0.2.0/24'
+  }
+}
+
 
 module cosmosDb 'core/db/cosmosdb.bicep' = {
   name: 'cosmosdb'
@@ -140,6 +191,18 @@ module backend 'core/host/appservice.bicep' = {
       AZURE_COSMOSDB_DATABASE: cosmosDbDatabaseName
       AZURE_COSMOSDB_ENDPOINT: cosmosDb.outputs.endpoint
     }
+  }
+}
+
+module appServiceEnvironment 'core/host/appserviceenvironment.bicep' = {
+  name: 'appserviceenvironment'
+  scope: resourceGroup
+  params: {
+    name: 'appserviceenvironment'
+    location: location
+    kind: 'ASEV3'
+    vnetId: appServiceSubnet.outputs.id
+    subnet: appServiceSubnet.outputs.name
   }
 }
 
