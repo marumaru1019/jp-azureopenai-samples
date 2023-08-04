@@ -45,7 +45,7 @@ param formRecognizerResourceGroupLocation string = location
 param formRecognizerSkuName string = 'S0'
 
 param gptDeploymentName string = 'davinci'
-param gptModelName string = 'text-davinci-003'
+param gptModelName string = 'gpt-35-turbo'
 param chatGptDeploymentName string = 'chat'
 param chatGptModelName string = 'gpt-35-turbo'
 
@@ -164,7 +164,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
         model: {
           format: 'OpenAI'
           name: gptModelName
-          version: '1'
+          version: '0301'
         }
         scaleSettings: {
           scaleType: 'Standard'
@@ -336,10 +336,10 @@ module searchRoleBackend 'core/security/role.bicep' = {
 
 // ===================== create private networks =====================
 module vnet 'core/network/vnet.bicep' = {
-  name: 'vnet'
+  name: 'test-vnet'
   scope: resourceGroup
   params: {
-    name: 'vnet'
+    name: 'test-vnet'
     location: vnetLocation
     addressPrefixes: ['10.0.0.0/16']
   }
@@ -355,53 +355,152 @@ module privateEndpointSubnet 'core/network/subnet.bicep' = {
   }
 }
 
-module storagePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-  name: 'storage-private-endpoint'
+// module appServiceSubnet 'core/network/subnet.bicep' = {
+//   name: 'app-service-subnet'
+//   scope: resourceGroup
+//   params: {
+//     existVnetName: vnet.outputs.name
+//     name: 'app-service-subnet'
+//     addressPrefix: '10.0.1.0/24'
+//     delegations: [
+//     {
+//     name: 'webapp'
+//       properties: {
+//         serviceName: 'Microsoft.Web/hostingEnvironments'
+//         }
+//       }
+//     ]
+//   }
+// }
+
+module vmSubnet 'core/network/subnet.bicep' = {
+  name: 'vm-subnet'
   scope: resourceGroup
   params: {
-    location: privateEndpointLocation
-    name: '${storage.outputs.name}-endpoint'
-    subnetId: privateEndpointSubnet.outputs.id
-    privateLinkServiceId: storage.outputs.id
-    privateLinkServiceGroupIds: ['Blob']
+    existVnetName: vnet.outputs.name
+    name: 'vm-subnet'
+    addressPrefix: '10.0.2.0/24'
   }
 }
 
-module searchServicePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-  name: 'search-service-private-endpoint'
+// module storagePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+//   name: 'storage-private-endpoint'
+//   scope: resourceGroup
+//   params: {
+//     location: privateEndpointLocation
+//     name: '${storage.outputs.name}-endpoint'
+//     subnetId: privateEndpointSubnet.outputs.id
+//     privateLinkServiceId: storage.outputs.id
+//     privateLinkServiceGroupIds: ['Blob']
+//   }
+// }
+
+// module searchServicePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+//   name: 'search-service-private-endpoint'
+//   scope: resourceGroup
+//   params: {
+//     location: privateEndpointLocation
+//     name: '${searchService.outputs.name}-endpoint'
+//     subnetId: privateEndpointSubnet.outputs.id
+//     privateLinkServiceId: searchService.outputs.id
+//     privateLinkServiceGroupIds: ['searchService']
+//   }
+// }
+
+// module oepnaiPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+//   name: 'openai-service-private-endpoint'
+//   scope: resourceGroup
+//   params: {
+//     location: privateEndpointLocation
+//     name: '${openAi.outputs.name}-endpoint'
+//     subnetId: privateEndpointSubnet.outputs.id
+//     privateLinkServiceId: openAi.outputs.id
+//     privateLinkServiceGroupIds: ['account']
+//   }
+// }
+
+// module formRecognizerPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+//   name: 'form-recognizer-private-endpoint'
+//   scope: resourceGroup
+//   params: {
+//     location: privateEndpointLocation
+//     name: '${formRecognizer.outputs.name}-endpoint'
+//     subnetId: privateEndpointSubnet.outputs.id
+//     privateLinkServiceId: formRecognizer.outputs.id
+//     privateLinkServiceGroupIds: ['account']
+//   }
+// }
+
+// module appServicePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+//   name: 'app-service-private-endpoint'
+//   scope: resourceGroup
+//   params: {
+//     location: privateEndpointLocation
+//     name: '${backend.outputs.name}-endpoint'
+//     subnetId: privateEndpointSubnet.outputs.id
+//     privateLinkServiceId: backend.outputs.id
+//     privateLinkServiceGroupIds: ['backend']
+//   }
+// }
+
+// ===================== create vm =====================
+
+module publicIP 'core/vm/pip.bicep' = {
+  name: 'publicIP'
   scope: resourceGroup
   params: {
-    location: privateEndpointLocation
-    name: '${searchService.outputs.name}-endpoint'
-    subnetId: privateEndpointSubnet.outputs.id
-    privateLinkServiceId: searchService.outputs.id
-    privateLinkServiceGroupIds: ['searchService']
+    name: 'publicIP'
+    location: location
   }
 }
 
-module oepnaiPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-  name: 'openai-service-private-endpoint'
+module nsg 'core/vm/nsg.bicep' = {
+  name: 'nsg'
   scope: resourceGroup
   params: {
-    location: privateEndpointLocation
-    name: '${openAi.outputs.name}-endpoint'
-    subnetId: privateEndpointSubnet.outputs.id
-    privateLinkServiceId: openAi.outputs.id
-    privateLinkServiceGroupIds: ['account']
+    name: 'nsg'
+    location: location
   }
 }
 
-module formRecognizerPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-  name: 'form-recognizer-private-endpoint'
+module nic 'core/vm/nic.bicep' = {
+  name: 'nic'
   scope: resourceGroup
   params: {
-    location: privateEndpointLocation
-    name: '${formRecognizer.outputs.name}-endpoint'
-    subnetId: privateEndpointSubnet.outputs.id
-    privateLinkServiceId: formRecognizer.outputs.id
-    privateLinkServiceGroupIds: ['account']
+    name: 'nic'
+    location: location
+    subnetId: vmSubnet.outputs.id
+    publicIPId: publicIP.outputs.publicIPId
+    nsgId: nsg.outputs.nsgId
   }
 }
+
+module vm 'core/vm/vm.bicep' = {
+  name: 'vm'
+  scope: resourceGroup
+  params: {
+    name: 'vm'
+    location: location
+    adminUsername: 'azureuser'
+    adminPasswordOrKey: 'Admin#123456#'
+    nicId: nic.outputs.nicId
+  }
+}
+
+
+// ===================== create app service environment =====================
+
+// module appServiceEnvironment 'core/host/appserviceenvironment.bicep' = {
+//   name: 'appserviceenvironment'
+//   scope: resourceGroup
+//   params: {
+//     name: 'appserviceenvironment'
+//     location: location
+//     kind: 'ASEV3'
+//     vnetId: appServiceSubnet.outputs.id
+//     subnet: appServiceSubnet.outputs.name
+//   }
+// }
 
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
