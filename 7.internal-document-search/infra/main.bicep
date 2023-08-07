@@ -383,65 +383,53 @@ module vmSubnet 'core/network/subnet.bicep' = {
   }
 }
 
-// module storagePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-//   name: 'storage-private-endpoint'
-//   scope: resourceGroup
-//   params: {
-//     location: privateEndpointLocation
-//     name: '${storage.outputs.name}-endpoint'
-//     subnetId: privateEndpointSubnet.outputs.id
-//     privateLinkServiceId: storage.outputs.id
-//     privateLinkServiceGroupIds: ['Blob']
-//   }
-// }
+module storagePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+  name: 'storage-private-endpoint'
+  scope: resourceGroup
+  params: {
+    location: privateEndpointLocation
+    name: '${storage.outputs.name}-endpoint'
+    subnetId: privateEndpointSubnet.outputs.id
+    privateLinkServiceId: storage.outputs.id
+    privateLinkServiceGroupIds: ['Blob']
+  }
+}
 
-// module searchServicePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-//   name: 'search-service-private-endpoint'
-//   scope: resourceGroup
-//   params: {
-//     location: privateEndpointLocation
-//     name: '${searchService.outputs.name}-endpoint'
-//     subnetId: privateEndpointSubnet.outputs.id
-//     privateLinkServiceId: searchService.outputs.id
-//     privateLinkServiceGroupIds: ['searchService']
-//   }
-// }
+module searchServicePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+  name: 'search-service-private-endpoint'
+  scope: resourceGroup
+  params: {
+    location: privateEndpointLocation
+    name: '${searchService.outputs.name}-endpoint'
+    subnetId: privateEndpointSubnet.outputs.id
+    privateLinkServiceId: searchService.outputs.id
+    privateLinkServiceGroupIds: ['searchService']
+  }
+}
 
-// module oepnaiPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-//   name: 'openai-service-private-endpoint'
-//   scope: resourceGroup
-//   params: {
-//     location: privateEndpointLocation
-//     name: '${openAi.outputs.name}-endpoint'
-//     subnetId: privateEndpointSubnet.outputs.id
-//     privateLinkServiceId: openAi.outputs.id
-//     privateLinkServiceGroupIds: ['account']
-//   }
-// }
+module oepnaiPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+  name: 'openai-service-private-endpoint'
+  scope: resourceGroup
+  params: {
+    location: privateEndpointLocation
+    name: '${openAi.outputs.name}-endpoint'
+    subnetId: privateEndpointSubnet.outputs.id
+    privateLinkServiceId: openAi.outputs.id
+    privateLinkServiceGroupIds: ['account']
+  }
+}
 
-// module formRecognizerPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-//   name: 'form-recognizer-private-endpoint'
-//   scope: resourceGroup
-//   params: {
-//     location: privateEndpointLocation
-//     name: '${formRecognizer.outputs.name}-endpoint'
-//     subnetId: privateEndpointSubnet.outputs.id
-//     privateLinkServiceId: formRecognizer.outputs.id
-//     privateLinkServiceGroupIds: ['account']
-//   }
-// }
-
-// module appServicePrivateEndopoint 'core/network/privateEndpoint.bicep' = {
-//   name: 'app-service-private-endpoint'
-//   scope: resourceGroup
-//   params: {
-//     location: privateEndpointLocation
-//     name: '${backend.outputs.name}-endpoint'
-//     subnetId: privateEndpointSubnet.outputs.id
-//     privateLinkServiceId: backend.outputs.id
-//     privateLinkServiceGroupIds: ['backend']
-//   }
-// }
+module formRecognizerPrivateEndopoint 'core/network/privateEndpoint.bicep' = {
+  name: 'form-recognizer-private-endpoint'
+  scope: resourceGroup
+  params: {
+    location: privateEndpointLocation
+    name: '${formRecognizer.outputs.name}-endpoint'
+    subnetId: privateEndpointSubnet.outputs.id
+    privateLinkServiceId: formRecognizer.outputs.id
+    privateLinkServiceGroupIds: ['account']
+  }
+}
 
 // ===================== create vm =====================
 
