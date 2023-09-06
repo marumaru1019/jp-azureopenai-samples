@@ -5,7 +5,7 @@ import { SparkleFilled } from "@fluentui/react-icons";
 
 import styles from "./DocSearch.module.css";
 
-import { searchdocApi, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
+import { searchdocApi, RetrievalMode, Approaches, AskResponse, ChatRequest, ChatTurn } from "../../api";
 import { Answer, AnswerError, AnswerLoading } from "../../components/Answer";
 import { QuestionInput } from "../../components/QuestionInput";
 import { ExampleList } from "../../components/Example";
@@ -17,10 +17,11 @@ import { ClearChatButton } from "../../components/ClearChatButton";
 const DocSearch = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
 
-    const [gptModel, setGptModel] = useState<string>("text-davinci-003");
+    const [gptModel, setGptModel] = useState<string>("gpt-3.5-turbo");
     const [temperature, setTemperature] = useState<string>("0.0");
 
     const [retrieveCount, setRetrieveCount] = useState<number>(5);
+    const [retrievalMode, setRetrievalMode] = useState<RetrievalMode>(RetrievalMode.Hybrid);
     const [useSemanticRanker, setUseSemanticRanker] = useState<boolean>(true);
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(true);
     const [excludeCategory, setExcludeCategory] = useState<string>("");
@@ -38,7 +39,8 @@ const DocSearch = () => {
     const [answers, setAnswers] = useState<[user: string, response: AskResponse][]>([]);
 
     const gpt_models: IDropdownOption[] = [
-        { key: "text-davinci-003", text: "text-davinci-003" },
+        { key: "gpt-3.5-turbo", text: "gpt-3.5-turbo" },
+        { key: "gpt-3.5-turbo-16k", text: "gpt-3.5-turbo-16k" },
         { key: "gpt-4", text: "gpt-4" },
         { key: "gpt-4-32k", text: "gpt-4-32k" }
     ];
@@ -57,12 +59,13 @@ const DocSearch = () => {
             const history: ChatTurn[] = answers.map(a => ({ user: a[0], bot: a[1].answer }));
             const request: ChatRequest = {
                 history: [...history, { user: question, bot: undefined }],
-                approach: Approaches.ReadRetrieveRead,
+                approach: Approaches.DocSearch,
                 overrides: {
                     gptModel: gptModel,
                     temperature: temperature,
                     top: retrieveCount,
                     excludeCategory: excludeCategory.length === 0 ? undefined : excludeCategory,
+                    retrievalMode: retrievalMode,
                     semanticRanker: useSemanticRanker,
                     semanticCaptions: useSemanticCaptions
                 }
@@ -100,6 +103,10 @@ const DocSearch = () => {
 
     const onRetrieveCountChange = (_ev?: React.SyntheticEvent<HTMLElement, Event>, newValue?: string) => {
         setRetrieveCount(parseInt(newValue || "5"));
+    };
+
+    const onRetrievalModeChange = (_ev: React.FormEvent<HTMLDivElement>, option?: IDropdownOption<RetrievalMode> | undefined, index?: number | undefined) => {
+        setRetrievalMode(option?.data || RetrievalMode.Hybrid);
     };
 
     const onUseSemanticRankerChange = (_ev?: React.FormEvent<HTMLElement | HTMLInputElement>, checked?: boolean) => {
@@ -260,6 +267,17 @@ const DocSearch = () => {
                         label="Use query-contextual summaries instead of whole documents"
                         onChange={onUseSemanticCaptionsChange}
                         disabled={!useSemanticRanker}
+                    />
+                    <Dropdown
+                        className={styles.chatSettingsSeparator}
+                        label="Retrieval mode"
+                        options={[
+                            { key: "hybrid", text: "Vectors + Text (Hybrid)", selected: retrievalMode == RetrievalMode.Hybrid, data: RetrievalMode.Hybrid },
+                            { key: "vectors", text: "Vectors", selected: retrievalMode == RetrievalMode.Vectors, data: RetrievalMode.Vectors },
+                            { key: "text", text: "Text", selected: retrievalMode == RetrievalMode.Text, data: RetrievalMode.Text }
+                        ]}
+                        required
+                        onChange={onRetrievalModeChange}
                     />
                 </Panel>
             </div>

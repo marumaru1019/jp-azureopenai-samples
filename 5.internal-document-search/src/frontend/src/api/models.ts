@@ -1,12 +1,17 @@
 export const enum Approaches {
-    RetrieveThenRead = "rtr",
-    ReadRetrieveRead = "rrr",
-    ReadDecomposeAsk = "rda",
-    Read = "r"
+    Chat = "chat",
+    DocSearch = "docsearch"
+}
+
+export const enum RetrievalMode {
+    Hybrid = "hybrid",
+    Vectors = "vectors",
+    Text = "text"
 }
 
 export type AskRequestOverrides = {
     gptModel?: string;
+    retrievalMode?: RetrievalMode;
     semanticRanker?: boolean;
     semanticCaptions?: boolean;
     excludeCategory?: string;
@@ -15,12 +20,6 @@ export type AskRequestOverrides = {
     promptTemplate?: string;
     promptTemplatePrefix?: string;
     promptTemplateSuffix?: string;
-};
-
-export type AskRequest = {
-    question: string;
-    approach: Approaches;
-    overrides?: AskRequestOverrides;
 };
 
 export type AskResponse = {
