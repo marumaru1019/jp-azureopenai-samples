@@ -86,12 +86,7 @@ blob_client = BlobServiceClient(
 blob_container = blob_client.get_container_client(AZURE_STORAGE_CONTAINER)
 
 chat_approaches = {
-    "rrr": ChatReadRetrieveReadApproach(
-        search_client, 
-        AZURE_OPENAI_EMB_DEPLOYMENT,
-        KB_FIELDS_SOURCEPAGE, 
-        KB_FIELDS_CONTENT
-    ),
+     "rrr": ChatReadRetrieveReadApproach(search_client, KB_FIELDS_SOURCEPAGE, KB_FIELDS_CONTENT),
     "r": ChatReadApproach()
 }
 
