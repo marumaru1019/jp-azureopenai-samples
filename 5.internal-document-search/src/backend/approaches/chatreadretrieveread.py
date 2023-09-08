@@ -48,13 +48,12 @@ source quesion: {user_question}
     ]
 
     # TODO: add container_log: ContainerProxy when quart is used
-    def __init__(self, search_client: SearchClient,  embedding_deployment: str, sourcepage_field: str, content_field: str):
+    def __init__(self, search_client: SearchClient, sourcepage_field: str, content_field: str):
         self.search_client = search_client
         # TODO: To uncomment when enabling asynchronous support.
         # self.container_log = container_log
         self.sourcepage_field = sourcepage_field
         self.content_field = content_field
-        self.embedding_deployment = embedding_deployment
     
     def run(self, user_name: str, history: list[dict], overrides: dict) -> any:
         # chat_model = overrides.get("gptModel")
@@ -76,7 +75,7 @@ source quesion: {user_question}
 
         # TODO: Change create type ChatCompletion.create → ChatCompletion.acreate when enabling asynchronous support.
         chat_completion = openai.ChatCompletion.create(
-            engine=chat_deployment, 
+            engine=chat_deployment,
             messages=messages,
             temperature=0.0,
             max_tokens=max_tokens,
@@ -114,19 +113,11 @@ source quesion: {user_question}
                                           query_type=QueryType.SEMANTIC,
                                           query_language="en-us",
                                           query_speller="lexicon",
-                                          semantic_configuration_name="default",
-                                          top=top,
-                                          query_caption="extractive|highlight-false" if use_semantic_captions else None,
-                                          vector=query_vector,
-                                          top_k=50 if query_vector else None,
-                                          vector_fields="embedding" if query_vector else None)
+                                          semantic_configuration_name="default", 
+                                          top=top, 
+                                          query_caption="extractive|highlight-false" if use_semantic_captions else None)
         else:
-            r = self.search_client.search(query_text,
-                                          filter=filter,
-                                          top=top,
-                                          vector=query_vector,
-                                          top_k=50 if query_vector else None,
-                                          vector_fields="embedding" if query_vector else None)
+            r = self.search_client.search(q, filter=filter, top=top)
         if use_semantic_captions:
             results = [doc[self.sourcepage_field] + ": " + nonewlines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
         else:

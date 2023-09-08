@@ -40,7 +40,6 @@ param openAiGpt35TurboDeploymentName string = 'gpt-35-turbo-deploy'
 param openAiGpt35Turbo16kDeploymentName string = 'gpt-35-turbo-16k-deploy'
 param openAiGpt4DeploymentName string = ''
 param openAiGpt432kDeploymentName string = ''
-param openAiEmbeddingDeploymentName string = 'text-embedding-ada-002-deploy'
 param openAiApiVersion string = '2023-05-15'
 
 
@@ -69,9 +68,6 @@ param vmLoginPassword string
 
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
-
-@description('Use Application Insights for monitoring and performance tracing')
-param useApplicationInsights bool = false
 
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
@@ -110,17 +106,6 @@ module cosmosDb 'core/db/cosmosdb.bicep' = {
     cosmosDbDatabaseName: cosmosDbDatabaseName
     cosmosDbContainerName: cosmosDbContainerName
     publicNetworkAccess: isPrivateNetworkEnabled ? 'Disabled' : 'Enabled'
-  }
-}
-
-// Monitor application with Azure Monitor
-module monitoring 'core/monitor/monitoring.bicep' = if (useApplicationInsights) {
-  name: 'monitoring'
-  scope: resourceGroup
-  params: {
-    location: location
-    tags: tags
-    applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
   }
 }
 
@@ -165,12 +150,10 @@ module backend 'core/host/appservice.bicep' = {
       AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT: openAiGpt35Turbo16kDeploymentName
       AZURE_OPENAI_GPT_4_DEPLOYMENT: ''
       AZURE_OPENAI_GPT_4_32K_DEPLOYMENT: ''
-      AZURE_OPENAI_EMB_DEPLOYMENT: openAiEmbeddingDeploymentName
       AZURE_OPENAI_API_VERSION: '2023-05-15'
       AZURE_COSMOSDB_CONTAINER: cosmosDbContainerName
       AZURE_COSMOSDB_DATABASE: cosmosDbDatabaseName
       AZURE_COSMOSDB_ENDPOINT: cosmosDb.outputs.endpoint
-      APPLICATIONINSIGHTS_CONNECTION_STRING: useApplicationInsights ? monitoring.outputs.applicationInsightsConnectionString : ''
     }
   }
 }
@@ -209,15 +192,6 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
           name: 'Standard'
           capacity: 120
         }
-      }
-      {
-        name: openAiEmbeddingDeploymentName
-        model: {
-          format: 'OpenAI'
-          name: 'text-embedding-ada-002'
-          version: '2'
-        }
-        capacity: 120
       }
     ]
     publicNetworkAccess: isPrivateNetworkEnabled ? 'Disabled' : 'Enabled'
@@ -634,7 +608,6 @@ output AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT string = openAiGpt35TurboDeploymentN
 output AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT string = openAiGpt35Turbo16kDeploymentName
 output AZURE_OPENAI_GPT_4_DEPLOYMENT string = openAiGpt4DeploymentName
 output AZURE_OPENAI_GPT_4_32K_DEPLOYMENT string = openAiGpt432kDeploymentName
-output AZURE_OPENAI_EMB_DEPLOYMENT string = openAiEmbeddingDeploymentName
 output AZURE_OPENAI_API_VERSION string = openAiApiVersion
 
 output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
