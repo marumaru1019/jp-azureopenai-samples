@@ -1,4 +1,4 @@
-import { Pivot, PivotItem } from "@fluentui/react";
+import { Pivot, PivotItem, IconButton } from "@fluentui/react";
 import DOMPurify from "dompurify";
 
 import styles from "./AnalysisPanel.module.css";
@@ -14,11 +14,12 @@ interface Props {
     activeCitation: string | undefined;
     citationHeight: string;
     answer: AskResponse;
+    onClose: () => void;
 }
 
 const pivotItemDisabledStyle = { disabled: true, style: { color: "grey" } };
 
-export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeight, className, onActiveTabChanged }: Props) => {
+export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeight, className, onActiveTabChanged, onClose }: Props) => {
     const isDisabledThoughtProcessTab: boolean = !answer.thoughts;
     const isDisabledSupportingContentTab: boolean = !answer.data_points.length;
     const isDisabledCitationTab: boolean = !activeCitation;
@@ -26,32 +27,35 @@ export const AnalysisPanel = ({ answer, activeTab, activeCitation, citationHeigh
     const sanitizedThoughts = DOMPurify.sanitize(answer.thoughts!);
 
     return (
-        <Pivot
-            className={className}
-            selectedKey={activeTab}
-            onLinkClick={pivotItem => pivotItem && onActiveTabChanged(pivotItem.props.itemKey! as AnalysisPanelTabs)}
-        >
-            <PivotItem
-                itemKey={AnalysisPanelTabs.ThoughtProcessTab}
-                headerText="思考プロセス"
-                headerButtonProps={isDisabledThoughtProcessTab ? pivotItemDisabledStyle : undefined}
+        <div>
+            <IconButton iconProps={{ iconName: 'Cancel' }} title="閉じる" ariaLabel="閉じる" onClick={onClose} className={styles.closeButton} />
+            <Pivot
+                className={className}
+                selectedKey={activeTab}
+                onLinkClick={pivotItem => pivotItem && onActiveTabChanged(pivotItem.props.itemKey! as AnalysisPanelTabs)}
             >
-                <div className={styles.thoughtProcess} dangerouslySetInnerHTML={{ __html: sanitizedThoughts }}></div>
-            </PivotItem>
-            <PivotItem
-                itemKey={AnalysisPanelTabs.SupportingContentTab}
-                headerText="補助資料"
-                headerButtonProps={isDisabledSupportingContentTab ? pivotItemDisabledStyle : undefined}
-            >
-                <SupportingContent supportingContent={answer.data_points} />
-            </PivotItem>
-            <PivotItem
-                itemKey={AnalysisPanelTabs.CitationTab}
-                headerText="ドキュメント"
-                headerButtonProps={isDisabledCitationTab ? pivotItemDisabledStyle : undefined}
-            >
-                <iframe title="Citation" src={activeCitation} width="100%" height={citationHeight} />
-            </PivotItem>
-        </Pivot>
+                <PivotItem
+                    itemKey={AnalysisPanelTabs.ThoughtProcessTab}
+                    headerText="思考プロセス"
+                    headerButtonProps={isDisabledThoughtProcessTab ? pivotItemDisabledStyle : undefined}
+                >
+                    <div className={styles.thoughtProcess} dangerouslySetInnerHTML={{ __html: sanitizedThoughts }}></div>
+                </PivotItem>
+                <PivotItem
+                    itemKey={AnalysisPanelTabs.SupportingContentTab}
+                    headerText="補助資料"
+                    headerButtonProps={isDisabledSupportingContentTab ? pivotItemDisabledStyle : undefined}
+                >
+                    <SupportingContent supportingContent={answer.data_points} />
+                </PivotItem>
+                <PivotItem
+                    itemKey={AnalysisPanelTabs.CitationTab}
+                    headerText="ドキュメント"
+                    headerButtonProps={isDisabledCitationTab ? pivotItemDisabledStyle : undefined}
+                >
+                    <iframe title="Citation" src={activeCitation} width="100%" height={citationHeight} />
+                </PivotItem>
+            </Pivot>
+        </div>
     );
 };

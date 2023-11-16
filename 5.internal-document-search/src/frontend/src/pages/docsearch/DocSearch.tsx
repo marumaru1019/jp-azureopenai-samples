@@ -140,6 +140,11 @@ const DocSearch = () => {
         setSelectedAnswer(index);
     };
 
+    const closeAnalysisPanel = () => {
+        setActiveAnalysisPanelTab(undefined);
+        setActiveCitation(undefined);
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.commandsContainer}>
@@ -212,6 +217,7 @@ const DocSearch = () => {
                         citationHeight="810px"
                         answer={answers[selectedAnswer][1]}
                         activeTab={activeAnalysisPanelTab}
+                        onClose={closeAnalysisPanel}
                     />
                 )}
 
