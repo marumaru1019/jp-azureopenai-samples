@@ -1,5 +1,9 @@
 # 閉域網におけるデプロイ
 
+#### アーキテクチャ
+
+![閉域網におけるアーキテクチャ](./assets/private_endpoint_arch.png)
+
 #### リソース追加・変更内容
 
 - Virtual Machine
@@ -37,11 +41,13 @@ IaCとして追加・更新したファイルは以下の通りです。
 |Private Endpoint||App Service, Cognitive Service, Azure OpenAI Service, Form Recognizer, Storage Account用の5つ|
 |NNetwork Interface||Private Endpoint用の5つ|
 |Azure App Service|S1||
-|Azure OpenAI Service|S0|gpt-3.5-turbo|
+|Azure OpenAI Service|S0|gpt-3.5-turbo gpt-3.5-turbo-16k|
 |Azure Cognitive Search|S1||
 |Azure Cosmos DB|プロビジョニング済みスループット||
 |Azure Form Recgonizer|S0||
 |Azure Blob Storage|汎用v2|ZRS|
+|Azure Application Insights||ワークスペース　ベース|
+|Azure Log Analytics|||
 
 ## デプロイ手順
 閉域網でのデプロイを実行するには、以下の手順でデプロイします。
